@@ -6,12 +6,11 @@ import pause
 import os
 
 from src.fetch import fetch_conferences
+from src.data.credentials import Credentials
 from src.page.zoom_meeting_page import ZoomMeetingPage
 
-from credentials import Credentials
 
-
-def get_conferences(save_file, credentials, time_range):
+def load_conference_data(save_file, credentials, time_range):
     if os.path.exists(save_file):
         with open(save_file, 'rb') as fb:
             return pickle.load(fb)
@@ -41,7 +40,7 @@ def main():
 
     print("Checking schedule...")
         
-    conferences = get_conferences(save_file, credentials, time_range)
+    conferences = load_conference_data(save_file, credentials, time_range)
     current_date = datetime.now()
 
     for conference in filter(lambda x: x.start >= current_date, conferences):

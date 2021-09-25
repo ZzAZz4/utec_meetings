@@ -1,5 +1,5 @@
 from .wiretap import Wiretap
-from ..conference.conferences import Conference
+from ..data.conferences import Conference
 import json
 
 

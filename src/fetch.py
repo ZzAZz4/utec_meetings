@@ -7,7 +7,7 @@ from .page.app_main_page import AppMainPage
 from .page.landing_page import LandingPage
 from .page.gmail_login_page import GmailLoginPage
 
-from .intercept.conference_interceptor import ConferenceFetch
+from .intercept.conference_interceptor import ConferenceInterceptor
 
 
 def headless_options(user_agent=None):
@@ -48,7 +48,7 @@ def fetch_conferences(email, password, start, end):
         
         driver.get(conference_page_url)
         
-        conference_interceptor = ConferenceFetch(driver, start, end)
+        conference_interceptor = ConferenceInterceptor(driver, start, end)
         data = conference_interceptor.get_conferences()
             
         return data

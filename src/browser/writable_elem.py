@@ -1,5 +1,4 @@
 from .web_elem import WebElem
-from selenium.webdriver.support.ui import WebDriverWait
 
 
 class WritableElem(WebElem):

@@ -3,7 +3,7 @@ from ..data.conferences import Conference
 import json
 
 
-class ConferenceFetch:
+class ConferenceInterceptor:
     API_URL = 'https://api.utec.edu.pe/conference-api/v1/conference/list/meeting/student'
 
     def __request_callback(self, request):

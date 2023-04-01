@@ -47,8 +47,6 @@ def _define_layout() -> ptg.Layout:
     layout.add_slot("Footer Left", height=1, width=0.5)
     layout.add_slot("Footer Right", height=1, width=0.5)
 
-    # layout.add_slot("Footer", height=1)
-
     return layout
 
 
@@ -94,11 +92,11 @@ def _confirm_reset(manager: ptg.WindowManager, updater: ScheduleUpdater):
 def _daily_update(manager: ptg.WindowManager, updater: ScheduleUpdater) -> None:
     pbar = ProgressWidget()
     modal = ptg.Window(
-            "[app.title]Updating job list...",
-            "",
-            ptg.Container(pbar)
-        ).center()
-    
+        "[app.title]Updating job list...",
+        "",
+        ptg.Container(pbar)
+    ).center()
+
     manager.add(modal)
     updater.refetch(pbar)
     modal.close()
@@ -109,10 +107,10 @@ def start_program(sched: BaseScheduler, updater: ScheduleUpdater) -> None:
     _configure_widgets()
     sched.start()
 
-
     with ptg.WindowManager() as manager:
         def enable_daily_update() -> None:
-            sched.add_job(_daily_update, 'cron', hour=6, minute=0, args=(manager, updater), id="daily_update")
+            sched.add_job(_daily_update, 'cron', hour=6, minute=0,
+                          args=(manager, updater), id="daily_update")
 
         def disable_daily_update() -> None:
             sched.remove_job("daily_update")

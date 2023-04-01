@@ -1,8 +1,9 @@
 from apscheduler.schedulers.background import BaseScheduler
 import pytermgui as ptg
 
-from utec.gui.update_job import UpdateJob
-from utec.gui.next_job_widget import NextClassWidget
+from utec.gui.update_job import ScheduleUpdater
+from utec.gui.progress_widget import ProgressWidget
+from utec.gui.next_class_widget import NextClassWidget
 
 import pytermgui as ptg
 
@@ -63,14 +64,16 @@ def _confirm_quit(manager: ptg.WindowManager) -> None:
         ),
     ).center()
 
-    modal.select(1)
+    modal.select(0)
     manager.add(modal)
 
 
-def _confirm_reset(manager: ptg.WindowManager, updater: UpdateJob):
+def _confirm_reset(manager: ptg.WindowManager, updater: ScheduleUpdater):
+    pbar = ProgressWidget()
+
     def reset_job_list_and_close() -> None:
+        updater.refetch(pbar)
         modal.close()
-        updater.reset_job_list()
 
     modal = ptg.Window(
         "[app.title]Are you sure you want to reset the job list?",
@@ -80,18 +83,40 @@ def _confirm_reset(manager: ptg.WindowManager, updater: UpdateJob):
                 ptg.Button("Yes", lambda *_: reset_job_list_and_close()),
                 ptg.Button("No", lambda *_: modal.close()),
             ),
+            pbar
         ),
     ).center()
 
-    modal.select(1)
+    modal.select(0)
     manager.add(modal)
 
 
-def start_display(sched: BaseScheduler, updater: UpdateJob) -> None:
+def _daily_update(manager: ptg.WindowManager, updater: ScheduleUpdater) -> None:
+    pbar = ProgressWidget()
+    modal = ptg.Window(
+            "[app.title]Updating job list...",
+            "",
+            ptg.Container(pbar)
+        ).center()
+    
+    manager.add(modal)
+    updater.refetch(pbar)
+    modal.close()
+
+
+def start_program(sched: BaseScheduler, updater: ScheduleUpdater) -> None:
     _create_aliases()
     _configure_widgets()
+    sched.start()
+
 
     with ptg.WindowManager() as manager:
+        def enable_daily_update() -> None:
+            sched.add_job(_daily_update, 'cron', hour=6, minute=0, args=(manager, updater), id="daily_update")
+
+        def disable_daily_update() -> None:
+            sched.remove_job("daily_update")
+
         class_widget = NextClassWidget(sched=sched, every_seconds=1)
 
         manager.layout = _define_layout()
@@ -129,7 +154,3 @@ def start_display(sched: BaseScheduler, updater: UpdateJob) -> None:
             ),
             assign="body",
         )
-
-        
-
-        

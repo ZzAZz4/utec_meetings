@@ -1,57 +1,25 @@
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver import Chrome
-from datetime import datetime
-import pickle
-import pause
+import dotenv
 import os
+from apscheduler.schedulers.background import BackgroundScheduler
 
-from src.fetch import fetch_conferences
-from src.data.credentials import Credentials
-from src.page.zoom_meeting_page import ZoomMeetingPage
-
-
-def load_conference_data(save_file, credentials, time_range):
-    if os.path.exists(save_file):
-        with open(save_file, 'rb') as fb:
-            return pickle.load(fb)
-
-    email, password = credentials.email, credentials.password
-    data = fetch_conferences(email, password, *time_range)
-    os.makedirs(os.path.dirname(save_file), exist_ok=True)
-    
-    with open(save_file, 'wb') as fb:
-        pickle.dump(data, fb)
-    
-    return data
-
-
-def join_conference(conference):
-    with Chrome(ChromeDriverManager().install()) as driver:
-        driver.get(conference.url)
-        meeting_page = ZoomMeetingPage(driver)
-        meeting_page.click_join()
-        meeting_page.accept_popup()
+from utec.gui.update_job import UpdateJob
+from utec.gui.display import start_display
 
 
 def main():
-    credentials = Credentials.from_file("secret/credentials.json")
-    save_file = 'saved/conferences.pkl'
-    time_range = ("2021-09-02", "2021-12-31")
+    dotenv.load_dotenv()
+    executors = {'default': {'type': 'threadpool', 'max_workers': 20}}
+    jobstores = {'default': {'type': 'memory'},
+                 'classes': {'type': 'sqlalchemy', 'url': os.environ['DBURI']}}
 
-    print("Checking schedule...")
-        
-    conferences = load_conference_data(save_file, credentials, time_range)
-    current_date = datetime.now()
+    sched = BackgroundScheduler(executors=executors, jobstores=jobstores)
+    updater = UpdateJob(sched, os.environ['USERNAME'], os.environ['PASSWORD'])
+    sched.add_job(updater.reset_job_list, 'cron', hour=2,
+                  minute=0, id='main_job', replace_existing=True)
+    sched.start()
 
-    for conference in filter(lambda x: x.start >= current_date, conferences):
-        course = conference.course
-        start, end = conference.start, conference.end
-        meeting_url = conference.url
-        print(f"\n{course}: {start!s} - {end!s}\nJoin: {meeting_url}\n")
-        
-        pause.until(conference.start)
-        join_conference(conference)        
-       
-        
+    start_display(sched, updater)
+
+
 if __name__ == '__main__':
     main()

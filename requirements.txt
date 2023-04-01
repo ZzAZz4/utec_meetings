@@ -1,6 +1,8 @@
 selenium
 selenium-wire
 webdriver-manager
-pause
 keyboard
-fake-useragent
+loguru
+pyvirtualdisplay
+apscheduler
+pytermgui

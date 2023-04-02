@@ -4,6 +4,8 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.remote.switch_to import SwitchTo
+import selenium.webdriver 
+import seleniumwire.webdriver
 
 from typing import Protocol, Callable, Any, Self
 
@@ -46,7 +48,7 @@ class IWiredWebDriver(IWebDriver, Protocol):
     def request_interceptor(self, interceptor: IRequestInterceptor | None): ...
 
 
-class WrappedWebdriver:
+class Webdriver:
     def __init__(self, driver: IWebDriver):
         self.driver: IWebDriver = driver
 
@@ -67,7 +69,7 @@ class WrappedWebdriver:
         self.driver.switch_to.window(self.driver.window_handles[index])
 
 
-class WrappedWiredWebdriver(WrappedWebdriver):
+class WiredWebdriver(Webdriver):
     def __init__(self, driver: IWiredWebDriver):
         super().__init__(driver)
         self.driver: IWiredWebDriver = driver
@@ -82,3 +84,12 @@ class WrappedWiredWebdriver(WrappedWebdriver):
     @request_interceptor.setter
     def request_interceptor(self, interceptor: IRequestInterceptor |
                             None): self.driver.request_interceptor = interceptor
+
+
+def make_driver(cls: type[IWebDriver]=selenium.webdriver.Chrome, **kwargs) -> Webdriver:
+    driver = cls(**kwargs)
+    return Webdriver(driver)
+
+def make_wired_webdriver(cls: type[IWiredWebDriver]=seleniumwire.webdriver.Chrome, **kwargs) -> WiredWebdriver:
+    driver = cls(**kwargs)
+    return WiredWebdriver(driver)

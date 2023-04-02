@@ -1,8 +1,7 @@
-from loguru import logger
 from selenium.webdriver.common.by import By
 
-from utec.core.driver import WrappedWebdriver
-from utec.core.progress import ProgressIndicator, EmptyProgressIndicator
+from src.utec.core.driver import Webdriver
+from src.utec.core.progress import ProgressIndicator, EmptyProgressIndicator
 
 LOGIN_BTN_XPATH = '/html/body/div/div/div[2]/button'
 UNAME_INPUT_XPATH = '//*[@id="identifierId"]'
@@ -11,7 +10,7 @@ CONFERENCE_BTN_XPATH = '//*[@id="app"]/div[1]/div/div/div[1]/div/div[2]/button'
 CONFERENCE_BTN_XPATH = '//*[@id="app"]/div[1]/div/div/div[1]/div/div[2]/button'
 
 
-def login(driver: WrappedWebdriver, username: str, password: str, progress: ProgressIndicator):
+def login(driver: Webdriver, username: str, password: str, progress: ProgressIndicator):
     driver.get('https://sistema-academico.utec.edu.pe/access')
 
     login_button = driver.find_element(By.XPATH, LOGIN_BTN_XPATH)

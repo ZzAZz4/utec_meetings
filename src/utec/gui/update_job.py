@@ -1,9 +1,10 @@
 from apscheduler.schedulers.background import BaseScheduler
-from utec.core import get_conferences, open_conference
-from utec.core.progress import ProgressIndicator, EmptyProgressIndicator        
+from src.utec.api.conference import get_conferences
+from utec.core.open import open_conference
+from src.utec.core.progress import ProgressIndicator, EmptyProgressIndicator        
 
 class ScheduleUpdater:
-    def __init__(self, sched: BaseScheduler, uname: str, password: str, **attrs) -> None:
+    def __init__(self, sched: BaseScheduler, uname: str, password: str) -> None:
         self.sched = sched
         self.uname = uname
         self.password = password

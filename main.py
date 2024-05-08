@@ -8,7 +8,7 @@ from utec.gui.window_display import start_program
 
 
 def main():
-    dotenv.load_dotenv()
+    dotenv.load_dotenv(".config")
     executors = {'default': {'type': 'threadpool', 'max_workers': 20}}
     jobstores = {'default': {'type': 'memory'},
                  'classes': {'type': 'sqlalchemy', 'url': os.environ['DBURI']}}

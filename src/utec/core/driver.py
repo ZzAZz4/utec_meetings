@@ -1,95 +1,106 @@
-from seleniumwire.request import Request
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.remote.switch_to import SwitchTo
+from selenium.webdriver.support.wait import WebDriverWait
 
-from typing import Protocol, Any, Self, cast
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from typing import Union
+    from selenium.webdriver import Chrome, Firefox
+    from seleniumwire.webdriver import Chrome as WiredChrome
+    from seleniumwire.webdriver import Firefox as WiredFirefox
+    from selenium.webdriver.remote.webelement import WebElement
 
-
-class ICondition(Protocol):
-    def __call__(self, locator: tuple[str, str], /) -> Any: ...
-
-
-class IRequestInterceptor(Protocol):
-    def __call__(self, request: Request): ...
-
-
-class IWebDriver(Protocol):
-    def get(self, url: str): ...
-
-    def find_element(self, by: str = By.ID,
-                     value: 'str | None' = None) -> WebElement: ...
-
-    def close(self): ...
-    def quit(self): ...
-    def __enter__(self) -> Self: ...
-    def __exit__(self, exc_type, exc, traceback, /): ...
-
-    @property
-    def switch_to(self) -> SwitchTo: ...
-
-    @property
-    def window_handles(self) -> list[str]: ...
+    WiredDriver = Union[WiredChrome, WiredFirefox]
+    Driver = Union[Chrome, Firefox, WiredChrome, WiredFirefox]
+else:
+    WiredDriver = 'WiredDriver'
+    Driver = 'Driver'
 
 
-class IWiredWebDriver(IWebDriver, Protocol):
-    def wait_for_request(
-        self, url: str, timeout: 'int | float' = 10, /) -> Request: ...
+def get_webdriver(type: str) -> 'Driver':
+    if type == 'chrome':
+        driver = get_chrome_driver()
+    elif type == 'firefox':
+        driver = get_firefox_driver()
+    else:
+        raise ValueError(f"Invalid driver type: {type}")
 
-    @property
-    def request_interceptor(self) -> IRequestInterceptor | None: ...
-
-    @request_interceptor.setter
-    def request_interceptor(self, interceptor: IRequestInterceptor | None): ...
+    return driver
 
 
-class WrappedWebdriver:
-    def __init__(self, driver: IWebDriver):
-        self.driver: IWebDriver = driver
+def get_wired_webdriver(type: str) -> 'WiredDriver':
+    if type == 'chrome':
+        driver = get_wired_chrome_driver()
+    elif type == 'firefox':
+        driver = get_wired_firefox_driver()
+    else:
+        raise ValueError(f"Invalid driver type: {type}")
 
-    def close(self):
-        self.driver.close()
+    return driver
 
-    def quit(self):
-        self.driver.quit()
 
-    def __enter__(self):
-        self.driver.__enter__()
-        return self
+def get_chrome_driver() -> 'Chrome':
+    from webdriver_manager.chrome import ChromeDriverManager
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.chrome.service import Service
+    from selenium import webdriver
 
-    def __exit__(self, exc_type, exc, traceback, /):
-        self.driver.quit()
+    path = ChromeDriverManager().install()
+    service = Service(path)
+    options = Options()
+    options.add_argument("--disable-gpu")
+    sdriver = webdriver.Chrome(service=service, options=options)
+    return sdriver
 
-    def get(self, url: str):
-        return self.driver.get(url)
+
+def get_wired_chrome_driver() -> 'WiredChrome':
+    from webdriver_manager.chrome import ChromeDriverManager
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.chrome.service import Service
+    from seleniumwire import webdriver
+
+    path = ChromeDriverManager().install()
+    service = Service(path)
+    options = Options()
+    options.add_argument("--disable-gpu")
+    sdriver = webdriver.Chrome(service=service, options=options)
+    return sdriver
+
+
+def get_firefox_driver() -> 'Firefox':
+    from webdriver_manager.firefox import GeckoDriverManager
+    from selenium.webdriver.firefox.options import Options
+    from selenium.webdriver.firefox.service import Service
+    from selenium import webdriver
+
+    path = GeckoDriverManager().install()
+    service = Service(path)
+    options = Options()
+    options.add_argument("--disable-gpu")
+    sdriver = webdriver.Firefox(service=service, options=options)
+    return sdriver
+
+
+def get_wired_firefox_driver() -> 'WiredFirefox':
+    from webdriver_manager.firefox import GeckoDriverManager
+    from selenium.webdriver.firefox.options import Options
+    from selenium.webdriver.firefox.service import Service
+    from seleniumwire import webdriver
+
+    path = GeckoDriverManager().install()
+    service = Service(path)
+    options = Options()
+    options.add_argument("--disable-gpu")
+    sdriver = webdriver.Firefox(service=service, options=options)
+    return sdriver
+
+
+class FindWithWait:
+    def __init__(self, driver: 'Driver'):
+        self.driver = driver
 
     def find_element(
         self, by: str, value: str, timeout: float = 10,
-        wait_until: ICondition = EC.visibility_of_element_located
-    ) -> WebElement:
-        driver = cast(WebDriver, self.driver)
-        wait = WebDriverWait(driver, timeout=timeout)
+        wait_until=EC.visibility_of_element_located
+    ) -> 'WebElement':
+        wait = WebDriverWait(self.driver, timeout=timeout)
         return wait.until(wait_until((by, value)))
-
-    def switch_tab(self, index: int):
-        self.driver.switch_to.window(self.driver.window_handles[index])
-
-
-class WrappedWiredWebdriver(WrappedWebdriver):
-    def __init__(self, driver: IWiredWebDriver):
-        super().__init__(driver)
-        self.driver: IWiredWebDriver = driver
-
-    def wait_for_request(self, url: str, timeout: float = 10) -> Request:
-        return self.driver.wait_for_request(url, timeout)
-
-    @property
-    def request_interceptor(self) -> IRequestInterceptor | None:
-        return self.driver.request_interceptor
-
-    @request_interceptor.setter
-    def request_interceptor(self, interceptor: IRequestInterceptor | None):
-        self.driver.request_interceptor = interceptor

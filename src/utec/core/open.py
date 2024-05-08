@@ -1,9 +1,10 @@
-from selenium import webdriver
 from selenium.webdriver.common.by import By
-from utec.core.driver import WrappedWebdriver
+from utec.core.driver import FindWithWait, get_webdriver
 import keyboard
 import time
 from utec.core.conference import Conference
+import os
+
 
 JOIN_BUTTON_XPATH = '//*[@id="zoom-ui-frame"]/div[2]/div/div[1]/div'
 
@@ -13,12 +14,13 @@ def open_conference(conference: Conference):
         print("No url to join")
         return
 
-    sdriver = webdriver.Chrome()
+    driver_type = os.getenv('DRIVER_TYPE', 'chrome')
 
-    with WrappedWebdriver(sdriver) as driver:
+    with get_webdriver(driver_type) as driver:
         driver.get(conference.url)
 
-        join_button = driver.find_element(By.XPATH, JOIN_BUTTON_XPATH)
+        finder = FindWithWait(driver)
+        join_button = finder.find_element(By.XPATH, JOIN_BUTTON_XPATH)
         join_button.click()
 
         # accept the popup

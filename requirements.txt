@@ -1,8 +1,5 @@
 selenium
 selenium-wire
 webdriver-manager
-keyboard
-loguru
-pyvirtualdisplay
 apscheduler
 pytermgui

@@ -2,10 +2,7 @@ from apscheduler.schedulers.background import BaseScheduler
 import pytermgui as ptg
 
 from utec.gui.update_job import ScheduleUpdater
-from utec.gui.progress_widget import ProgressWidget
 from utec.gui.next_class_widget import NextClassWidget
-
-import pytermgui as ptg
 
 
 PALETTE_LIGHT = "#FCBA03"
@@ -67,10 +64,9 @@ def _confirm_quit(manager: ptg.WindowManager) -> None:
 
 
 def _confirm_reset(manager: ptg.WindowManager, updater: ScheduleUpdater):
-    pbar = ProgressWidget()
 
     def reset_job_list_and_close() -> None:
-        updater.refetch(pbar)
+        updater.refetch()
         modal.close()
 
     modal = ptg.Window(
@@ -81,25 +77,11 @@ def _confirm_reset(manager: ptg.WindowManager, updater: ScheduleUpdater):
                 ptg.Button("Yes", lambda *_: reset_job_list_and_close()),
                 ptg.Button("No", lambda *_: modal.close()),
             ),
-            pbar
         ),
     ).center()
 
     modal.select(0)
     manager.add(modal)
-
-
-def _daily_update(manager: ptg.WindowManager, updater: ScheduleUpdater) -> None:
-    pbar = ProgressWidget()
-    modal = ptg.Window(
-        "[app.title]Updating job list...",
-        "",
-        ptg.Container(pbar)
-    ).center()
-
-    manager.add(modal)
-    updater.refetch(pbar)
-    modal.close()
 
 
 def start_program(sched: BaseScheduler, updater: ScheduleUpdater) -> None:
@@ -108,13 +90,6 @@ def start_program(sched: BaseScheduler, updater: ScheduleUpdater) -> None:
     sched.start()
 
     with ptg.WindowManager() as manager:
-        def enable_daily_update() -> None:
-            sched.add_job(_daily_update, 'cron', hour=6, minute=0,
-                          args=(manager, updater), id="daily_update")
-
-        def disable_daily_update() -> None:
-            sched.remove_job("daily_update")
-
         class_widget = NextClassWidget(sched=sched, every_seconds=1)
 
         manager.layout = _define_layout()

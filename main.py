@@ -13,8 +13,12 @@ def main():
     jobstores = {'default': {'type': 'memory'},
                  'classes': {'type': 'sqlalchemy', 'url': os.environ['DBURI']}}
 
-    sched = BackgroundScheduler(executors=executors, jobstores=jobstores, timezone=str(tzlocal.get_localzone()))
-    updater = ScheduleUpdater(sched, os.environ['USERNAME'], os.environ['PASSWORD'])
+    sched = BackgroundScheduler(
+        executors=executors,
+        jobstores=jobstores,
+        timezone=str(tzlocal.get_localzone())
+    )
+    updater = ScheduleUpdater(sched)
 
     start_program(sched, updater)
 

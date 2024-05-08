@@ -5,6 +5,8 @@ venv
 .env
 ca.crt
 *.sqlite
+*.db
 [. ][Tt]estbed
 *.egg-info
 **__pycache__
+*.egg_info

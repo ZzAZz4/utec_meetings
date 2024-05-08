@@ -1,6 +1,6 @@
 
 import pytermgui as ptg
-from apscheduler.schedulers.background import BaseScheduler
+
 
 class ProgressWidget(ptg.Container):
     def __init__(self, **attrs) -> None:
@@ -14,7 +14,7 @@ class ProgressWidget(ptg.Container):
             f"{self._n}/{self._total}",  # type: ignore
         ])
 
-    def update(self, n: int | float | None=1, /) -> None:
+    def update(self, n: int | float | None = 1, /) -> None:
         n = n if n is not None else 1
         self._n = min(self._n + n, self._total if self._total else 0)
         self._render()
@@ -23,7 +23,7 @@ class ProgressWidget(ptg.Container):
         self._desc = desc
         self._render()
 
-    def reset(self, total: float | None=...) -> None:
+    def reset(self, total: float | None = None) -> None:
         self._total = total if total is not None else 0
         self._n = 0
         self._desc = ""
@@ -31,4 +31,3 @@ class ProgressWidget(ptg.Container):
 
     @property
     def n(self) -> int | float: return self._n
-        

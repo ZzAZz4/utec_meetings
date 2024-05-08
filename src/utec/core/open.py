@@ -12,11 +12,11 @@ def open_conference(conference: Conference):
     if conference.url is None:
         print("No url to join")
         return
-    
+
     sdriver = webdriver.Chrome()
 
     with WrappedWebdriver(sdriver) as driver:
-        driver.get(conference.url)    
+        driver.get(conference.url)
 
         join_button = driver.find_element(By.XPATH, JOIN_BUTTON_XPATH)
         join_button.click()
@@ -25,4 +25,3 @@ def open_conference(conference: Conference):
         keyboard.press_and_release('left')
         keyboard.press_and_release('enter')
         time.sleep(1)
-    

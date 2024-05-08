@@ -2,15 +2,15 @@ from seleniumwire.request import Request
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.remote.switch_to import SwitchTo
 
-from typing import Protocol, Callable, Any, Self
+from typing import Protocol, Any, Self, cast
 
 
 class ICondition(Protocol):
-    def __call__(self, locator: tuple[str, str]) -> Callable[[
-        'IWiredWebDriver'], Any]: ...
+    def __call__(self, locator: tuple[str, str], /) -> Any: ...
 
 
 class IRequestInterceptor(Protocol):
@@ -50,17 +50,28 @@ class WrappedWebdriver:
     def __init__(self, driver: IWebDriver):
         self.driver: IWebDriver = driver
 
-    def close(self): self.driver.close()
-    def quit(self): self.driver.quit()
-    def __enter__(self): self.driver.__enter__(); return self
-    def __exit__(self, exc_type, exc, traceback, /): self.driver.quit()
+    def close(self):
+        self.driver.close()
+
+    def quit(self):
+        self.driver.quit()
+
+    def __enter__(self):
+        self.driver.__enter__()
+        return self
+
+    def __exit__(self, exc_type, exc, traceback, /):
+        self.driver.quit()
 
     def get(self, url: str):
         return self.driver.get(url)
 
-    def find_element(self, by: str, value: str, timeout: float = 10,
-                     wait_until: ICondition = EC.visibility_of_element_located) -> WebElement:
-        wait = WebDriverWait(self.driver, timeout=timeout)
+    def find_element(
+        self, by: str, value: str, timeout: float = 10,
+        wait_until: ICondition = EC.visibility_of_element_located
+    ) -> WebElement:
+        driver = cast(WebDriver, self.driver)
+        wait = WebDriverWait(driver, timeout=timeout)
         return wait.until(wait_until((by, value)))
 
     def switch_tab(self, index: int):
@@ -76,9 +87,9 @@ class WrappedWiredWebdriver(WrappedWebdriver):
         return self.driver.wait_for_request(url, timeout)
 
     @property
-    def request_interceptor(
-        self) -> IRequestInterceptor | None: return self.driver.request_interceptor
+    def request_interceptor(self) -> IRequestInterceptor | None:
+        return self.driver.request_interceptor
 
     @request_interceptor.setter
-    def request_interceptor(self, interceptor: IRequestInterceptor |
-                            None): self.driver.request_interceptor = interceptor
+    def request_interceptor(self, interceptor: IRequestInterceptor | None):
+        self.driver.request_interceptor = interceptor

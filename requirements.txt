@@ -3,3 +3,4 @@ selenium-wire
 webdriver-manager
 apscheduler
 pytermgui
+keyboard

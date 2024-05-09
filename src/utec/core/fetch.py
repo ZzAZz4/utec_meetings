@@ -61,6 +61,7 @@ def prompt_gmail_login(driver: 'WiredWebdriver'):
     conf_btn = finder.find_element("xpath", CONFERENCE_BTN_XPATH, timeout=360)
     conf_btn.click()
 
+    driver.minimize_window()
     driver.switch_to.window(driver.window_handles[1])
     login_button = finder.find_element("xpath", LOGIN_BTN_XPATH)
     login_button.click()
